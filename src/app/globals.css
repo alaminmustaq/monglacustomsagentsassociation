@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Arial, Helvetica, sans-serif;
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+}
+
+html,
+body {
+  background: #f9fafb;
+  color: #111827;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  /* Form controls share one look. Use "btn btn-primary" etc. together. */
+  .input {
+    @apply block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-xs outline-none
+      placeholder:text-gray-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 disabled:bg-gray-100 disabled:text-gray-600;
+  }
+  .input-error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-100;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brand-700 text-white hover:bg-brand-800;
+  }
+  .btn-secondary {
+    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50;
+  }
+  .btn-danger {
+    @apply border border-red-200 bg-white text-red-700 hover:bg-red-50;
+  }
+  .btn-ghost {
+    @apply text-gray-600 hover:bg-gray-100;
+  }
+  .card {
+    @apply rounded-lg border border-gray-200 bg-white shadow-xs;
+  }
+  .table-base {
+    @apply min-w-full divide-y divide-gray-200 text-sm;
+  }
+  .table-base th {
+    @apply bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600;
+  }
+  .table-base td {
+    @apply px-3 py-2 text-gray-800;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+}
+
+/* Printing: A4, no app chrome, one voucher per page, report tables repeat their header. */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+@media print {
+  html,
+  body {
+    background: #fff;
+    font-size: 12px;
+  }
+  .no-print,
+  header.app-header,
+  aside,
+  footer.app-footer {
+    display: none !important;
+  }
+  .voucher-print {
+    padding: 0;
+    break-after: page;
+  }
+  .voucher-print:last-child {
+    break-after: auto;
+  }
+  .report-print table {
+    font-size: 11px;
+  }
+  .report-print thead {
+    display: table-header-group;
+  }
+  .report-print tr {
+    break-inside: avoid;
+  }
+}
