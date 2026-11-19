@@ -27,6 +27,7 @@ export const NAV: NavGroup[] = [
       { label: "Operation Admin", href: "/operations", icon: LayoutGrid },
       { label: "Chart of Accounts", href: "/accounts", icon: FolderTree, permission: "accounts.view" },
       { label: "Opening Balance", href: "/opening-balances", icon: Scale, permission: "opening_balances.view" },
+      { label: "All Transactions", href: "/transactions/all", icon: History, permission: "vouchers.view" },
       { label: "Receive Transaction", href: "/transactions/receive", icon: ArrowDownToLine, permission: "vouchers.view" },
       { label: "Payment Transaction", href: "/transactions/payment", icon: ArrowUpFromLine, permission: "vouchers.view" },
       { label: "Transfer Transaction", href: "/transactions/transfer", icon: ArrowLeftRight, permission: "vouchers.view" },
@@ -88,10 +89,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   async function signOut() {
     try {
-      await api("/auth/logout", { method: "POST" });
+      const res = await api<{ message: string; sso_logout_url?: string | null }>("/auth/logout", { method: "POST" });
+      if (res?.sso_logout_url) {
+        queryClient.clear();
+        window.location.href = res.sso_logout_url;
+        return;
+      }
+    } catch {
+      // ignore error during sign out
     } finally {
       queryClient.clear();
-      router.replace("/login");
+      router.replace("/login?local=1");
     }
   }
 

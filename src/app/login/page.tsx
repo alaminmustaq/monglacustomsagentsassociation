@@ -9,20 +9,38 @@ import { useBranding } from "@/lib/session";
 import { BrandMark } from "@/components/BrandMark";
 import type { Me } from "@/lib/types";
 
+const ssoLoginUrl = "/sso/login";
+
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const queryClient = useQueryClient();
   const branding = useBranding().data;
+  const isLocal = params.get("local") === "1" || params.get("local") === "true";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(params.get("expired") ? "Your session expired. Please sign in again." : null);
-
   useEffect(() => {
-    if (branding) document.title = `Sign in | ${branding.app_name}`;
-  }, [branding]);
+    if (branding) {
+      document.title = `Sign in | ${branding.app_name}`;
+      if (branding.sso_enabled && !isLocal) {
+        window.location.href = ssoLoginUrl;
+      }
+    }
+  }, [branding, isLocal]);
+
+  if (branding?.sso_enabled && !isLocal) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Loader2 size={28} className="animate-spin text-brand-600" />
+          <p className="text-sm font-medium text-gray-700">Redirecting to SSO login...</p>
+        </div>
+      </main>
+    );
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,6 +128,22 @@ function LoginForm() {
               Sign in
             </button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">Or</span>
+            </div>
+          </div>
+
+          <a
+            href={ssoLoginUrl}
+            className="btn btn-secondary flex w-full items-center justify-center gap-2 py-2.5 text-center text-sm font-medium"
+          >
+            Sign in with SSO
+          </a>
         </div>
         <p className="mt-4 text-center text-xs text-gray-500">{branding?.footer_text}</p>
       </div>

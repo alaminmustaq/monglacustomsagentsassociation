@@ -35,7 +35,7 @@ const HEADER_LABEL: Record<string, Record<number, string>> = {
 };
 
 export function ReceivePaymentForm({ module, voucherId, onClose, onSaved }: { module: "receive" | "payment"; voucherId: number | null; onClose: () => void; onSaved: (v: Voucher) => void }) {
-  const { me } = useSession();
+  const { me, can } = useSession();
   const toast = useToast();
   const queryClient = useQueryClient();
   const isReceive = module === "receive";
@@ -82,7 +82,8 @@ export function ReceivePaymentForm({ module, voucherId, onClose, onSaved }: { mo
     setErrors((e) => (Object.keys(e).some((k) => !k.includes(".")) ? Object.fromEntries(Object.entries(e).filter(([k]) => k.includes("."))) : e));
   }, [h]);
 
-  const definition = definitions.data?.find((d) => String(d.id) === h.transaction_definition_id);
+  // const definition = definitions.data?.find((d) => String(d.id) === h.transaction_definition_id);
+  const definition = true;
 
 
   const allowedTypes = useMemo(() => {
@@ -93,7 +94,13 @@ export function ReceivePaymentForm({ module, voucherId, onClose, onSaved }: { mo
 
   const type = types.data?.find((t) => String(t.id) === h.transaction_type_id);
   const headerAccounts = usePostingAccounts(type?.header_control ? [type.header_control.id] : [-1]);
-  const lineIds = useMemo(() => (definition?.accounts ?? []).map((a) => a.id), [definition]);
+  const lineIds = useMemo(() => {
+    if (typeof definition === "object" && definition && "accounts" in definition) {
+      const accs = (definition as { accounts?: Array<{ id: number }> }).accounts;
+      return (accs ?? []).map((a) => a.id);
+    }
+    return [] as number[];
+  }, [definition]);
   const lineAccounts = usePostingAccounts(lineIds.length ? lineIds : null);
   const isCashBank = (a: { code: string }) => a.code.startsWith("1-1-10-") || a.code.startsWith("1-1-11-");
   const filteredLineAccounts = useMemo(() => {
@@ -213,18 +220,24 @@ export function ReceivePaymentForm({ module, voucherId, onClose, onSaved }: { mo
 
             {type?.show_instrument && (
               <>
-                <Field label="Instrument type" htmlFor="v-itype">
-                  <select id="v-itype" className="input" value={h.instrument_type} onChange={(e) => setH({ ...h, instrument_type: e.target.value })}>
-                    <option value="">Select</option>
-                    {INSTRUMENTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-                  </select>
-                </Field>
-                <Field label={h.instrument_type === "cheque" ? "Cheque No." : "Instrument No."} htmlFor="v-ino">
-                  <input id="v-ino" className="input" maxLength={50} value={h.instrument_no} onChange={(e) => setH({ ...h, instrument_no: e.target.value })} />
-                </Field>
-                <Field label="Instrument date" error={errors.instrument_date} htmlFor="v-idate">
-                  <input id="v-idate" type="date" className="input" value={h.instrument_date} onChange={(e) => setH({ ...h, instrument_date: e.target.value })} />
-                </Field>
+                {can("vouchers.instrument_type") && (
+                  <Field label="Instrument type" htmlFor="v-itype">
+                    <select id="v-itype" className="input" value={h.instrument_type} onChange={(e) => setH({ ...h, instrument_type: e.target.value })}>
+                      <option value="">Select</option>
+                      {INSTRUMENTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                    </select>
+                  </Field>
+                )}
+                {can("vouchers.instrument_no") && (
+                  <Field label={h.instrument_type === "cheque" ? "Cheque No." : "Instrument No."} htmlFor="v-ino">
+                    <input id="v-ino" className="input" maxLength={50} value={h.instrument_no} onChange={(e) => setH({ ...h, instrument_no: e.target.value })} />
+                  </Field>
+                )}
+                {can("vouchers.instrument_date") && (
+                  <Field label="Instrument date" error={errors.instrument_date} htmlFor="v-idate">
+                    <input id="v-idate" type="date" className="input" value={h.instrument_date} onChange={(e) => setH({ ...h, instrument_date: e.target.value })} />
+                  </Field>
+                )}
               </>
             )}
             {/* <Field label="Ref. Advice No." htmlFor="v-ref">

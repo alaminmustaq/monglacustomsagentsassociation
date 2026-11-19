@@ -8,7 +8,8 @@ FROM node:20-alpine AS build
 WORKDIR /app
 # The address of the API as seen from this container; baked into the proxy rules.
 ARG API_URL=http://api:8000
-ENV API_URL=$API_URL NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+ENV API_URL=$API_URL NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

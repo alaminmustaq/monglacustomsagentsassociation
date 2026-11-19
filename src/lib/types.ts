@@ -4,6 +4,7 @@ export type Branding = {
   footer_text: string;
   logo_url: string | null;
   currency_symbol: string;
+  sso_enabled?: boolean;
 };
 
 export type Preferences = {
